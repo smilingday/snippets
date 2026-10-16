@@ -74,6 +74,9 @@ dependencies {
     implementation(libs.litert)
     implementation(libs.litert.gpu)
 // [END android_litert_runtime_skill_dependencies]
+// [START android_litert_migration_skill_support_dependency]
+    implementation(libs.litert.support)
+// [END android_litert_migration_skill_support_dependency]
     ksp(libs.genai.schema.compiler)
     testImplementation(libs.junit)
     testImplementation(kotlin("test"))
