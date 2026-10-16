@@ -22,10 +22,9 @@ import com.google.ai.edge.litert.Accelerator
 import com.google.ai.edge.litert.CompiledModel
 import com.google.ai.edge.litert.TensorBuffer
 import com.google.ai.edge.litert.support.image.TensorImage
-import com.google.ai.edge.litert.support.tensorbuffer.TensorBuffer as SupportTensorBuffer
+import com.google.ai.edge.litert.support.tensorbuffer.TensorBufferFloat
 import java.io.File
 import kotlin.math.abs
-import org.tensorflow.lite.DataType
 // [END android_litert_migration_skill_imports]
 
 // [START android_litert_migration_skill_gpu_delegate]
@@ -71,25 +70,25 @@ fun loadLabels(context: Context, name: String = "labels.txt"): List<String> =
 // [END android_litert_migration_skill_labels]
 
 // [START android_litert_migration_skill_support_library]
-// Replaces the Support library's Model class. ImageProcessor, TensorImage, and
-// TensorLabel stay; the image goes into the CompiledModel buffers directly.
+// Replaces the Support library's Model class. ImageProcessor and TensorImage
+// stay; the processed image goes into the CompiledModel buffers directly, and
+// the scores pair with the labels without TensorLabel.
 fun runWithSupportImage(
     model: CompiledModel,
     inputs: List<TensorBuffer>,
     outputs: List<TensorBuffer>,
     image: TensorImage,
     inputElementCount: Int,
-    outputShape: IntArray
-): SupportTensorBuffer {
+    labels: List<String>
+): Map<String, Float> {
     // A uint8 image (one that skipped NormalizeOp) in a float input yields NaN.
-    check(image.dataType == DataType.FLOAT32) { "Normalize the image first" }
-    val pixels = image.tensorBuffer.floatArray
+    val pixels = (image.tensorBuffer as? TensorBufferFloat)?.floatArray
+        ?: error("Normalize the image to float first")
     // writeFloat accepts a shorter array without an error.
     check(pixels.size == inputElementCount) { "Input size ${pixels.size}" }
     inputs[0].writeFloat(pixels)
     model.run(inputs, outputs)
-    return SupportTensorBuffer.createFixedSize(outputShape, DataType.FLOAT32)
-        .apply { loadArray(outputs[0].readFloat()) }
+    return labels.zip(outputs[0].readFloat().toList()).toMap()
 }
 // [END android_litert_migration_skill_support_library]
 
