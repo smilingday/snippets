@@ -100,7 +100,7 @@ fun writeGoldenOutput(file: File, output: FloatArray) {
 }
 
 // After the migration: compare the migrated output with the recorded one.
-// A difference below 1e-3 passes for outputs of order 1.
+// A difference smaller than 1e-3 passes for outputs of order 1.
 fun maxAbsDifference(golden: FloatArray, migrated: FloatArray): Float {
     check(golden.size == migrated.size) { "Size ${migrated.size} != ${golden.size}" }
     return golden.indices.maxOf { abs(golden[it] - migrated[it]) }
